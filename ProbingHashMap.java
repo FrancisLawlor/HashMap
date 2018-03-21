@@ -1,16 +1,16 @@
-public class HashMap<K, V> {
+public class ProbingHashMap<K, V> {
   private static final int DEFAULT_MAX_MAP_SIZE = 10;
   private int currentSize;
   private MapEntry<K, V>[] mapEntries;
   private int currentMaxMapSize;
 
-  public HashMap() {
+  public ProbingHashMap() {
     this.currentSize = 0;
     this.mapEntries = new MapEntry[DEFAULT_MAX_MAP_SIZE];
     this.currentMaxMapSize = DEFAULT_MAX_MAP_SIZE;
   }
 
-  public HashMap(int currentMaxMapSize) {
+  public ProbingHashMap(int currentMaxMapSize) {
     this.currentSize = 0;
     this.currentMaxMapSize = currentMaxMapSize;
     this.mapEntries = new MapEntry[this.currentMaxMapSize];
@@ -119,35 +119,5 @@ public class HashMap<K, V> {
     }
 
     return -1;
-  }
-
-  public class MapEntry<K, V> {
-    private K key;
-    private V value;
-
-		public MapEntry(K key, V value) {
-			this.key = key;
-			this.value = value;
-		}
-
-    public K getKey() {
-      return this.key;
-    }
-
-    public void setKey(K key) {
-      this.key = key;
-    }
-
-    public V getValue() {
-      return value;
-    }
-
-    public void setValue(V value) {
-      this.value = value;
-    }
-
-    public String toString() {
-      return "MapEntry{" +"key = " + key + ", value = " + value +'}';
-    }
   }
 }
