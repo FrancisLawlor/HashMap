@@ -17,20 +17,24 @@ public class ProbingHashMap<K, V> {
   }
 
   public void put(K key, V value) {
-    int indexForExistingKey = findKeyIndexIfItExists(key);
+    int indexForExistingKey = findKeyIndex(key, false);
 
     if (indexForExistingKey != -1) {
       this.mapEntries[indexForExistingKey].setValue(value);
       return;
     }
 
-    int newEntryIndex = probeForNewEntryIndex(key);
+    if (this.size() == this.currentMaxMapSize) {
+      resize();
+    }
+
+    int newEntryIndex = findKeyIndex(key, true);
     this.mapEntries[newEntryIndex] = new MapEntry(key, value);
     this.currentSize++;
   }
 
   public V get(K key) {
-    int indexForExistingKey = findKeyIndexIfItExists(key);
+    int indexForExistingKey = findKeyIndex(key, false);
 
     if (indexForExistingKey != -1) {
       return this.mapEntries[indexForExistingKey].getValue();
@@ -40,7 +44,7 @@ public class ProbingHashMap<K, V> {
   }
 
   public V remove(K key) {
-    int indexForExistingKey = findKeyIndexIfItExists(key);
+    int indexForExistingKey = findKeyIndex(key, false);
 
     if (indexForExistingKey != -1) {
       V temp = this.mapEntries[indexForExistingKey].getValue();
@@ -69,7 +73,7 @@ public class ProbingHashMap<K, V> {
   }
 
   public boolean containsKey(K key) {
-    return findKeyIndexIfItExists(key) != -1;
+    return findKeyIndex(key, false) != -1;
   }
 
   private void resize() {
@@ -84,37 +88,25 @@ public class ProbingHashMap<K, V> {
   }
 
   private int hashKey(K key) {
-    int hashCode = Math.abs(key.hashCode()) % this.currentMaxMapSize;
+    int hashKey = Math.abs(key.hashCode()) % this.currentMaxMapSize;
 
-    return hashCode;
+    return hashKey;
 	}
 
-  private int findKeyIndexIfItExists(K key) {
+  private int findKeyIndex(K key, boolean searchingForInsertionPoint) {
     int index = hashKey(key);
 
     for (int i = 0; i < this.mapEntries.length; i++) {
       int currentIndex = (index + i) % this.currentMaxMapSize;
-      if (this.mapEntries[currentIndex] != null) {
-        if (this.mapEntries[currentIndex].getKey() == key) {
+
+      if (searchingForInsertionPoint) {
+        if (this.mapEntries[currentIndex] == null) {
           return currentIndex;
         }
-      }
-    }
-
-    return -1;
-  }
-
-  private int probeForNewEntryIndex(K key) {
-    if (this.size() == this.currentMaxMapSize) {
-      resize();
-    }
-
-    int index = hashKey(key);
-
-    for (int i = 0; i < this.currentMaxMapSize; i++) {
-      int currentIndex = (index + i) % this.currentMaxMapSize;
-      if (this.mapEntries[currentIndex] == null) {
-        return currentIndex;
+      } else {
+        if (this.mapEntries[currentIndex] != null && this.mapEntries[currentIndex].getKey() == key) {
+          return currentIndex;
+        }
       }
     }
 

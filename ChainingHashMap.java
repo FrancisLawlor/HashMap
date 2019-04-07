@@ -10,7 +10,7 @@ public class ChainingHashMap<K, V> {
     this.maxMapSize = DEFAULT_MAX_MAP_SIZE;
   }
 
-  public ChainingHashMap(int currentMaxMapSize) {
+  public ChainingHashMap(int maxMapSize) {
     this.currentSize = 0;
     this.maxMapSize = maxMapSize;
     this.mapEntries = new MapEntry[this.maxMapSize];
@@ -21,6 +21,7 @@ public class ChainingHashMap<K, V> {
 
     if (entry == null) {
       this.mapEntries[hashKey(key)] = new MapEntry(key, value);
+      this.currentSize++;
       return;
     }
 
@@ -28,9 +29,8 @@ public class ChainingHashMap<K, V> {
       entry.setValue(value);
     } else {
       entry.setNext(new MapEntry(key, value));
+      this.currentSize++;
     }
-
-    this.currentSize++;
   }
 
   public V get(K key) {
@@ -44,16 +44,22 @@ public class ChainingHashMap<K, V> {
   }
 
   public V remove(K key) {
-    int index = hashKey(key);
+    MapEntry<K, V> removalEntry = findEntryForRemoval(key);
 
-    if (this.mapEntries[index].getKey() == key) {
-      this.mapEntries[index] = this.mapEntries[index].getNext();
+    if (removalEntry == null) {
+      return null;
     }
 
-    MapEntry<K, V> entryBeforeKey = findEntryBeforeKey(key);
-    V temp = entryBeforeKey.getNext().getValue();
-    entryBeforeKey.setNext(entryBeforeKey.getNext().getNext());
+    if (removalEntry.getKey() == key) {
+      V temp = removalEntry.getValue();
+      removalEntry = removalEntry.getNext();
+      this.currentSize--;
 
+      return temp;
+    }
+
+    V temp = removalEntry.getNext().getValue();
+    removalEntry.setNext(removalEntry.getNext().getNext());
     this.currentSize--;
 
     return temp;
@@ -69,6 +75,10 @@ public class ChainingHashMap<K, V> {
 
   public int size() {
     return this.currentSize;
+  }
+
+  public boolean isEmpty() {
+    return this.currentSize == 0;
   }
 
   public boolean containsKey(K key) {
@@ -105,8 +115,16 @@ public class ChainingHashMap<K, V> {
     return runner;
   }
 
-  private MapEntry<K, V> findEntryBeforeKey(K key) {
+  private MapEntry<K, V> findEntryForRemoval(K key) {
     int index = hashKey(key);
+
+    if (this.mapEntries[index] == null) {
+      return null;
+    }
+
+    if (this.mapEntries[index].getKey() == key) {
+      return this.mapEntries[index];
+    }
 
     MapEntry<K, V> runner = this.mapEntries[index];
     while (runner.getNext() != null) {
